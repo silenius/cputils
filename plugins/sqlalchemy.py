@@ -2,7 +2,7 @@
 
 from cherrypy.process import plugins
 
-from sqlalchemy import engine_from_config, MetaData, __version__ as sa_version
+from sqlalchemy import create_engine, MetaData, __version__ as sa_version
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 __all__ = ['SAEnginePlugin']
@@ -34,6 +34,11 @@ class SAEnginePlugin(plugins.SimplePlugin):
         metadata.quote_schema = None
         session.autocommit = False
         session.autoflush = True
+
+        In your code:
+
+        SAEnginePlugin(cherrypy.engine, app.config['sqlalchemy'], myengine,
+                       mysession, mymeta).subscribe()
     """
 
     def __init__(self, bus, config, engine=None, session=None, meta=None):
@@ -41,37 +46,41 @@ class SAEnginePlugin(plugins.SimplePlugin):
 
         self.sa_engine = engine
         self.sa_meta = meta
+        self.sa_session = session
         self.config = config
-
-        self.sa_session = session if session else scoped_session(
-                          sessionmaker(autoflush=True, autocommit=False))
 
         self.bus.subscribe('get-session', self.get_session)
 
     def start(self):
         self.bus.log('SAEnginePlugin: Starting up DB access')
 
+        _config = {}
+
+        for (k, v) in self.config.iteritems():
+            _partition = k.partition('.')
+            _config.setdefault(_partition[0], {})[_partition[2]] = v
+
         # Engine
 
         if not self.sa_engine:
-            self.sa_engine = engine_from_config(self.config, prefix='engine.')
+            url = _config['engine'].pop('url')
+            self.sa_engine = create_engine(url, **_config['engine'])
 
         # Metadata
 
         if not self.sa_meta:
-            metadata_config = dict((k.lstrip('metadata.'), v) for (k, v) in\
-                                   a.iteritems() if k.startswith('metadata.'))
-            self.sa_meta = MetaData(engine=self.sa_engine, **metadata_config)
-        else:
+            self.sa_meta = MetaData(engine=self.sa_engine,
+                                    **_config.get('metadata', {}))
+        elif not sa.sa_meta.is_bound():
             self.sa_meta.bind = self.sa_engine
 
         # Session
 
-        self.sa_meta.bind = self.sa_engine
-        self.sa_session.configure(bind=self.sa_engine)
+        if not self.sa_session:
+            _session = sessionmaker(**config.get('session', {}))
+            self.sa_session = scoped_session(_session)
 
-        if self.config.get('metadata.reflect'):
-            self.sa_meta.reflect()
+        self.sa_session.configure(bind=self.sa_engine)
 
     def stop(self):
         self.bus.log('SAEnginePlugin: Stopping down DB access')
@@ -83,4 +92,3 @@ class SAEnginePlugin(plugins.SimplePlugin):
 
     def get_session(self):
         return self.sa_session
-
