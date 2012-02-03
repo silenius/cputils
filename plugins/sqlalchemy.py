@@ -71,13 +71,13 @@ class SAEnginePlugin(plugins.SimplePlugin):
         if not self.sa_meta:
             self.sa_meta = MetaData(engine=self.sa_engine,
                                     **_config.get('metadata', {}))
-        elif not sa.sa_meta.is_bound():
+        elif not self.sa_meta.is_bound():
             self.sa_meta.bind = self.sa_engine
 
         # Session
 
         if not self.sa_session:
-            _session = sessionmaker(**config.get('session', {}))
+            _session = sessionmaker(**_config.get('session', {}))
             self.sa_session = scoped_session(_session)
 
         self.sa_session.configure(bind=self.sa_engine)
