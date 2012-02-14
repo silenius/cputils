@@ -73,6 +73,8 @@ class SAEnginePlugin(plugins.SimplePlugin):
                                     **_config.get('metadata', {}))
         elif not self.sa_meta.is_bound():
             self.sa_meta.bind = self.sa_engine
+            if _config.get('metadata', {}).get('reflect'):
+                self.sa_meta.reflect()
 
         # Session
 
