@@ -69,7 +69,7 @@ class SAEnginePlugin(plugins.SimplePlugin):
         # Metadata
 
         if not self.sa_meta:
-            self.sa_meta = MetaData(engine=self.sa_engine,
+            self.sa_meta = MetaData(bind=self.sa_engine,
                                     **_config.get('metadata', {}))
         elif not self.sa_meta.is_bound():
             self.sa_meta.bind = self.sa_engine
