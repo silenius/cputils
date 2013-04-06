@@ -4,7 +4,6 @@ import os
 import os.path
 
 from cherrypy.process import plugins
-from chameleon import PageTemplateLoader
 
 __all__ = ['ChameleonTemplatePlugin']
 
@@ -29,6 +28,7 @@ class ChameleonTemplatePlugin(plugins.SimplePlugin):
             elif key.startswith('loader.config.'):
                 loader_config[key_without_prefix] = value
 
+        from chameleon import PageTemplateLoader
         self.loader = PageTemplateLoader(loader_search_path,
                                          loader_default_extension,
                                          **loader_config)
