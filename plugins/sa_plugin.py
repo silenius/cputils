@@ -7,9 +7,6 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 
 __all__ = ['SAEnginePlugin']
 
-if sa_version.split('.') < ['0', '7', '4']:
-    raise ImportError('Version 0.7.4 or later of SQLAlchemy required.')
-
 class SAEnginePlugin(plugins.SimplePlugin):
     """
         SQLAlchemy integration for CherryPy
