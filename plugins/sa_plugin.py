@@ -2,6 +2,7 @@
 
 from cherrypy.process import plugins
 
+import sqlalchemy.pool
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import scoped_session, sessionmaker
 
@@ -61,6 +62,10 @@ class SAEnginePlugin(plugins.SimplePlugin):
 
         if not self.sa_engine:
             url = _config['engine'].pop('url')
+            pool_factory = _config['engine'].pop('poolclass', None)
+            if pool_factory:
+                poolclass = getattr(sqlalchemy.pool, pool_factory)
+                _config['engine']['poolclass'] = poolclass
             self.sa_engine = create_engine(url, **_config['engine'])
 
         # Metadata
