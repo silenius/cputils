@@ -10,7 +10,6 @@ class SATool(cherrypy.Tool):
     def __init__(self):
         super(SATool, self).__init__('on_start_resource', self.bind_session,
                                      priority=20)
-        self.session = None
 
     def _setup(self):
         super(SATool, self)._setup()
@@ -18,11 +17,8 @@ class SATool(cherrypy.Tool):
                                       self.remove_session, priority=80)
 
     def bind_session(self):
-        self.session = cherrypy.engine.publish('get-session').pop()
+        cherrypy.request.db = cherrypy.engine.publish('get-session')
 
     def remove_session(self):
-        if not self.session:
-            return
-
-        self.session.remove()
-        self.session = None
+        cherrypy.request.db = None
+        cherrypy.engine.publish('release-session')

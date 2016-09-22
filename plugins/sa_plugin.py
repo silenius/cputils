@@ -48,6 +48,7 @@ class SAEnginePlugin(plugins.SimplePlugin):
         self.config = config
 
         self.bus.subscribe('get-session', self.get_session)
+        self.bus.subscribe('release-session', self.release_session)
 
     def start(self):
         self.bus.log('SAEnginePlugin: Starting up DB access')
@@ -95,4 +96,7 @@ class SAEnginePlugin(plugins.SimplePlugin):
             self.sa_engine = None
 
     def get_session(self):
-        return self.sa_session
+        return self.sa_session()
+
+    def release_session(self):
+        self.sa_session.remove()
