@@ -24,5 +24,5 @@ class SATool(cherrypy.Tool):
         if not self.session:
             return
 
-        self.session.close()
+        self.session.remove()
         self.session = None
