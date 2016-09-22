@@ -17,7 +17,7 @@ class SATool(cherrypy.Tool):
                                       self.remove_session, priority=80)
 
     def bind_session(self):
-        cherrypy.request.db = cherrypy.engine.publish('get-session')
+        cherrypy.request.db = cherrypy.engine.publish('get-session').pop()
 
     def remove_session(self):
         cherrypy.request.db = None
